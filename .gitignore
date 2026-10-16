@@ -1,0 +1,22 @@
+# Datos de clientes y salidas: confidenciales
+data/*
+!data/templates/
+data/templates/*
+!data/templates/assets/
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Claude Code local
+.claude/settings.local.json
+
+# Sistema
+.DS_Store
+Thumbs.db
+~$*
+*.lock

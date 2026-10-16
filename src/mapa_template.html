@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/*FONTS*/
+/*TOKENS*/
+html,body{height:100%;margin:0;background:var(--ka-color-black);color:var(--ka-color-white);font-family:var(--ka-font-body)}
+#sidebar{position:absolute;top:0;left:0;bottom:0;width:320px;z-index:400;overflow-y:auto;box-sizing:border-box;
+  background:var(--ka-color-gray-4);padding:20px 18px 28px}
+#map{position:absolute;top:0;left:320px;right:0;bottom:0;background:var(--ka-color-black)}
+.logo{height:26px;display:block;margin-bottom:18px}
+.eyebrow,.section-title{font-family:var(--ka-font-body);font-weight:600;text-transform:uppercase;letter-spacing:.1em;
+  font-size:11px;color:var(--ka-color-gray-3)}
+h1{font-family:var(--ka-font-display);font-weight:700;font-size:21px;line-height:1.2;margin:6px 0 4px}
+.sub{font-size:12px;color:var(--ka-color-gray-3);margin-bottom:16px}
+.stats{display:flex;gap:10px;margin-bottom:6px}
+.stat{flex:1;background:var(--ka-color-black);border-radius:var(--ka-radius-box);padding:10px 12px}
+.stat .num{font-family:var(--ka-font-display);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
+.stat .num.key{color:var(--ka-color-yellow)}
+.stat .lbl{font-size:11px;color:var(--ka-color-gray-3)}
+section{border-top:1px solid var(--ka-color-black);padding-top:14px;margin-top:14px}
+.section-title{margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;margin:7px 0;font-size:13px}
+.toggle{width:34px;height:18px;border-radius:var(--ka-radius-pill);background:var(--ka-color-black);position:relative;cursor:pointer;flex:none}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:var(--ka-color-gray-3);transition:.15s}
+.toggle.on{background:var(--ka-color-yellow)}
+.toggle.on::after{left:19px;background:var(--ka-color-black)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{font-size:12px;padding:4px 10px;border-radius:var(--ka-radius-pill);border:1px solid var(--ka-color-gray-3);cursor:pointer;
+  color:var(--ka-color-white);user-select:none;display:inline-flex;align-items:center;gap:6px}
+.chip.active{background:var(--ka-color-yellow);border-color:var(--ka-color-yellow);color:var(--ka-color-black)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;border:1px solid var(--ka-color-black)}
+label.f{display:block;font-size:12px;color:var(--ka-color-gray-3);margin:8px 0 4px}
+input.txt{width:100%;box-sizing:border-box;background:var(--ka-color-black);border:1px solid var(--ka-color-black);
+  border-radius:var(--ka-radius-box);color:var(--ka-color-white);padding:8px 10px;font:13px var(--ka-font-body)}
+input.txt:focus{outline:none;border-color:var(--ka-color-yellow)}
+.brk{display:grid;grid-template-columns:16px 1fr 42px;gap:8px;align-items:center;font-size:12px;margin:5px 0}
+.brk .sw{width:14px;height:14px;background:var(--ka-color-yellow)}
+.brk .v{font-family:var(--ka-font-display);text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{accent-color:var(--ka-color-yellow);width:100%}
+button.reset{background:none;border:1px solid var(--ka-color-gray-3);color:var(--ka-color-white);border-radius:var(--ka-radius-pill);
+  padding:4px 12px;font:12px var(--ka-font-body);cursor:pointer;margin-top:6px}
+.legend .row{justify-content:flex-start;gap:8px;margin:5px 0}
+#hint{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:500;background:var(--ka-color-gray-4);
+  color:var(--ka-color-white);font-size:12px;padding:6px 14px;border-radius:var(--ka-radius-pill);display:none}
+.leaflet-tooltip.kin-tt,.leaflet-popup-content-wrapper{background:var(--ka-color-white);color:var(--ka-color-black);
+  border:none;border-left:3px solid var(--ka-color-yellow);border-radius:var(--ka-radius-box);font-family:var(--ka-font-body);
+  box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.leaflet-tooltip.kin-tt::before{display:none}
+.kin-tip{display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:12px}
+.kin-tip b,.pp .num{font-family:var(--ka-font-display);font-weight:700}
+.kin-tip .sw{width:10px;height:10px;background:var(--ka-color-yellow)}
+.pp{font-size:12px;line-height:1.5}.pp .nm{font-family:var(--ka-font-display);font-weight:700;font-size:14px}
+.pp .muted{color:var(--ka-color-gray-3)}
+.badge{display:inline-block;background:var(--ka-color-black);color:var(--ka-color-white);border-radius:var(--ka-radius-pill);
+  padding:1px 8px;font-size:10px;letter-spacing:.08em;margin-top:4px}
+</style>
+</head>
+<body>
+<div id="sidebar">
+  <img class="logo" src="__LOGO__" alt="Kin">
+  <div class="eyebrow">Mapa de prospección</div>
+  <h1>__TITLE__</h1>
+  <div class="sub">__SUBTITLE__</div>
+  <div class="stats">
+    <div class="stat"><div class="num" id="st-total"></div><div class="lbl">POIs totales</div></div>
+    <div class="stat"><div class="num key" id="st-vis"></div><div class="lbl">Visibles</div></div>
+  </div>
+  <section><div class="section-title">Capas</div><div id="layers"></div></section>
+  <section><div class="section-title">Filtros</div><div id="filters"></div>
+    <label class="f">Nombre</label><input class="txt" id="f-search" placeholder="Buscar nombre, categoría o ciudad"></section>
+  <section><div class="section-title">Hexágonos — breaks</div><div id="sliders"></div>
+    <button class="reset" onclick="resetBreaks()">↺ Reset</button></section>
+  <section class="legend"><div class="section-title">Leyenda</div><div id="legend"></div></section>
+</div>
+<div id="map"></div>
+<div id="hint">Haz zoom para ver los puntos</div>
+<script>
+/*DATA*/
+const tok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const K={yellow:tok('--ka-color-yellow'),black:tok('--ka-color-black'),white:tok('--ka-color-white'),
+  g2:tok('--ka-color-gray-2'),g3:tok('--ka-color-gray-3'),g4:tok('--ka-color-gray-4')};
+const EXIST_COLORS=[K.yellow,K.white,K.g3];
+const HEX_OPACITY=[0.30,0.45,0.58,0.72,0.86,1.0];
+const POINT_ZOOM_THRESHOLD=Math.max(10,ZOOM+1); // país: 10 · ciudad: un nivel más que la vista inicial
+const N=D.lats.length;
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); // 1099 → 1.099
+
+// ── Mapa ─────────────────────────────────────────────────────────────────
+const map=L.map('map',{preferCanvas:true,zoomControl:true}).setView(CENTER,ZOOM);
+if(typeof FIT!=='undefined'&&FIT)map.fitBounds(L.latLngBounds(D.lats.map((la,i)=>[la,D.lngs[i]])),{padding:[30,30]});
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  {maxZoom:16,attribution:'Tiles © Esri — Esri, HERE, Garmin, © OpenStreetMap'}).addTo(map);
+map.createPane('hexPane').style.zIndex=300;
+map.createPane('clientPane').style.zIndex=340;
+map.createPane('pointPane').style.zIndex=350;
+map.createPane('labelsPane').style.zIndex=450;
+map.getPane('labelsPane').style.pointerEvents='none';
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
+  {maxZoom:16,pane:'labelsPane'}).addTo(map);
+// Un solo lienzo para hexágonos, clientes y puntos: con un lienzo por capa, el de arriba tapaba los
+// eventos de mouse de los hexágonos. El orden se controla con bringToBack/bringToFront.
+const R=L.canvas({padding:0.5,tolerance:3});
+const hexRenderer=R,ptRenderer=R,clRenderer=R;
+let hexGroup=L.layerGroup().addTo(map),pointGroup=L.layerGroup().addTo(map),clientGroup=L.layerGroup().addTo(map);
+const layerVis={hex:true,points:true,clients:F.clients};
+
+// ── Estado de filtros ────────────────────────────────────────────────────
+let fExcl='all',fChannel='all',fMatch='all',fExists=new Set(['all']),fGrades=new Set(['all']);
+let fCat=null,fCity=null,fState=null,fSearch='';
+const fX=D.xcat.map(()=>new Set(['all'])),fXmax=D.xnum.map(x=>x.max);
+function isVisible(i){
+  if(F.excl&&fExcl==='kept'&&D.excls[i]===1)return false;
+  if(F.excl&&fExcl==='excl'&&D.excls[i]===0)return false;
+  if(F.match&&fMatch!=='all'&&D.match[i]!==fMatch)return false;
+  if(F.channel&&fChannel!=='all'&&D.chs[i]!==fChannel)return false;
+  if(F.exist&&!fExists.has('all')&&!fExists.has(D.exists[i]))return false;
+  if(F.grade&&!fGrades.has('all')&&!fGrades.has(D.grades[i]))return false;
+  if(fCat!==null&&D.cats[i]!==fCat)return false;
+  if(fCity!==null&&D.cities[i]!==fCity)return false;
+  if(fState!==null&&D.states[i]!==fState)return false;
+  for(let k=0;k<D.xcat.length;k++)if(!fX[k].has('all')&&!fX[k].has(D.xcat[k].codes[i]))return false;
+  for(let k=0;k<D.xnum.length;k++)if(fXmax[k]<D.xnum[k].max&&D.xnum[k].vals[i]>fXmax[k])return false;
+  if(fSearch){const s=fSearch;
+    if(!(D.names[i]||'').toLowerCase().includes(s)&&!(F.cat&&(D.u_cats[D.cats[i]]||'').toLowerCase().includes(s))
+       &&!(F.city&&(D.u_cities[D.cities[i]]||'').toLowerCase().includes(s)))return false;}
+  return true;
+}
+// Encadra los puntos visibles (al elegir una región en mercados combinados)
+function fitVisible(){const v=getVisible();if(v.length)map.fitBounds(L.latLngBounds(v.map(i=>[D.lats[i],D.lngs[i]])),{padding:[30,30],maxZoom:13})}
+const getVisible=()=>{const v=[];for(let i=0;i<N;i++)if(isVisible(i))v.push(i);return v};
+
+// ── Hexágonos ────────────────────────────────────────────────────────────
+let breaks=[...DEFAULT_BREAKS],hexPolys=[];
+function hexClass(n){for(let i=0;i<breaks.length;i++)if(n<=breaks[i])return i;return 5}
+const hexStyle=n=>({renderer:hexRenderer,fillColor:K.yellow,fillOpacity:HEX_OPACITY[hexClass(n)],color:K.black,weight:1,opacity:.6});
+function buildHex(vis){
+  hexGroup.clearLayers();hexPolys=[];
+  // por celda: total y desglose por existencia (para el tooltip)
+  const cnt=new Map();vis.forEach(i=>{const c=D.h3[i];const o=cnt.get(c)||{n:0,e:{}};o.n++;
+    if(F.exist){const k=D.u_exists[D.exists[i]];o.e[k]=(o.e[k]||0)+1}cnt.set(c,o)});
+  cnt.forEach((o,c)=>{const n=o.n;
+    const p=L.polygon(D.cells[c],hexStyle(n));
+    const det=F.exist?' · '+['high','moderate','low'].filter(k=>o.e[k]).map(k=>`${k} ${fmt(o.e[k])}`).join(' · '):'';
+    p.bindTooltip(()=>`<div class="kin-tip"><span class="sw" style="opacity:${HEX_OPACITY[hexClass(n)]}"></span><b>${fmt(n)}</b>&nbsp;POIs${det}</div>`,{className:'kin-tt',sticky:true});
+    p.on('click',e=>{map.fitBounds(p.getBounds(),{maxZoom:Math.max(POINT_ZOOM_THRESHOLD,15)})});
+    p.addTo(hexGroup);p.bringToBack();hexPolys.push({poly:p,count:n});
+  });
+}
+const repaintHex=()=>hexPolys.forEach(h=>h.poly.setStyle(hexStyle(h.count)));
+
+// ── Puntos ───────────────────────────────────────────────────────────────
+function pointColor(i){
+  if(F.exist)return EXIST_COLORS[Math.min(D.exists[i],2)];
+  if(F.match)return D.match[i]?K.white:K.yellow;
+  return K.yellow;
+}
+function popup(i){
+  const rows=[];
+  if(D.addrs.length&&D.addrs[i])rows.push(`<div class="muted">${esc(D.addrs[i])}</div>`);
+  if(F.cat)rows.push(`Categoría: ${esc(D.u_cats[D.cats[i]])}`);
+  if(F.city)rows.push(`Ciudad: ${esc(D.u_cities[D.cities[i]])}`);
+  if(F.channel)rows.push(`Canal: ${esc(D.u_chs[D.chs[i]])}`);
+  if(F.exist)rows.push(`Existencia: ${esc(D.u_exists[D.exists[i]])}`);
+  if(F.grade)rows.push(`Grade: ${esc(D.u_grades[D.grades[i]])}`);
+  if(F.match)rows.push(`Estado: ${D.match[i]?'match':'no_match'}`);
+  if(D.scores.length)rows.push(`Score: <span class="num">${D.scores[i]}</span>`);
+  D.xcat.forEach(x=>rows.push(`${x.label}: ${esc(x.uniq[x.codes[i]])}`));
+  D.xnum.forEach(x=>rows.push(`${x.label}: <span class="num">${fmt(x.vals[i])}</span> m`));
+  const ex=F.excl&&D.excls[i]?'<div><span class="badge">EXCLUIDO</span></div>':'';
+  return `<div class="pp"><div class="nm">${esc(D.names[i])}</div>${rows.join('<br>')}${ex}</div>`;
+}
+function buildPoints(vis){
+  pointGroup.clearLayers();
+  const show=map.getZoom()>=POINT_ZOOM_THRESHOLD;
+  document.getElementById('hint').style.display=(!show&&(layerVis.points||layerVis.clients))?'block':'none';
+  if(!show)return;
+  vis.forEach(i=>{
+    const ex=F.excl&&D.excls[i]===1;
+    L.circleMarker([D.lats[i],D.lngs[i]],{renderer:ptRenderer,radius:5,fillColor:ex?K.black:pointColor(i),
+      color:ex?K.g2:K.black,weight:ex?1.5:1,fillOpacity:ex?0:.9}).bindPopup(()=>popup(i)).addTo(pointGroup);
+  });
+}
+function buildClients(){
+  clientGroup.clearLayers();
+  if(!F.clients||map.getZoom()<POINT_ZOOM_THRESHOLD)return;
+  D.cLats.forEach((la,i)=>L.circleMarker([la,D.cLngs[i]],{renderer:clRenderer,radius:4,fillColor:K.g3,color:K.black,weight:1,fillOpacity:1})
+    .bindPopup(`<div class="pp"><div class="nm">${esc(D.cNames[i])}</div><div class="muted">Cliente actual</div></div>`).addTo(clientGroup));
+}
+function buildLayers(){
+  const v=getVisible();
+  document.getElementById('st-vis').textContent=fmt(v.length);
+  if(layerVis.hex)buildHex(v);
+  if(layerVis.points)buildPoints(v);
+}
+map.on('zoomend',()=>{if(layerVis.points)buildPoints(getVisible());if(layerVis.clients)buildClients()});
+
+// ── Sidebar ──────────────────────────────────────────────────────────────
+function toggleLayer(id){
+  layerVis[id]=!layerVis[id];
+  document.getElementById('toggle-'+id).classList.toggle('on',layerVis[id]);
+  const grp={hex:hexGroup,points:pointGroup,clients:clientGroup}[id];
+  if(!layerVis[id]){map.removeLayer(grp);if(id==='points')document.getElementById('hint').style.display='none';}
+  else{grp.addTo(map);
+    if(id==='hex')buildHex(getVisible());else if(id==='points')buildPoints(getVisible());else buildClients();}
+}
+function layersUI(){
+  const L_=[['hex','Hexágonos'],['points','Puntos de prospección']];
+  if(F.clients)L_.push(['clients',`Clientes actuales (${fmt(D.cLats.length)})`]);
+  document.getElementById('layers').innerHTML=L_.map(([id,t])=>
+    `<div class="row"><span>${t}</span><div class="toggle${layerVis[id]?' on':''}" id="toggle-${id}" onclick="toggleLayer('${id}')"></div></div>`).join('');
+}
+function chipGroup(title,opts,isActive,onClick){
+  const box=document.createElement('div');
+  box.innerHTML=`<label class="f">${title}</label>`;
+  const c=document.createElement('div');c.className='chips';
+  opts.forEach(([val,label,color])=>{
+    const ch=document.createElement('div');ch.className='chip'+(isActive(val)?' active':'');
+    ch.innerHTML=(color?`<span class="dot" style="background:${color}"></span>`:'')+esc(label);
+    ch.onclick=()=>{onClick(val);[...c.children].forEach((e,k)=>e.classList.toggle('active',isActive(opts[k][0])));buildLayers()};
+    c.appendChild(ch);
+  });
+  box.appendChild(c);return box;
+}
+const multi=set=>val=>{if(val==='all'){set.clear();set.add('all')}else{set.delete('all');set.has(val)?set.delete(val):set.add(val);if(!set.size)set.add('all')}};
+function selectBox(title,uniq,setter){
+  const box=document.createElement('div');const id='dl'+Math.random().toString(36).slice(2);
+  box.innerHTML=`<label class="f">${title}</label><input class="txt" list="${id}" placeholder="Todas"><datalist id="${id}">${uniq.filter(Boolean).map(u=>`<option value="${esc(u)}">`).join('')}</datalist>`;
+  box.querySelector('input').oninput=e=>{const k=uniq.indexOf(e.target.value);if(k>=0||!e.target.value){setter(k>=0?k:null);buildLayers()}};
+  return box;
+}
+function filtersUI(){
+  const f=document.getElementById('filters');
+  if(F.excl)f.appendChild(chipGroup('Exclusión KIN',[['all','Todos'],['kept','✓ Sin exclusión'],['excl','✕ Solo excluidos']],v=>fExcl===v,v=>fExcl=v));
+  if(F.match&&!F.exist)f.appendChild(chipGroup('Estado',[['all','Todos'],[0,'No match',K.yellow],[1,'Match',K.white]],v=>fMatch===v,v=>fMatch=v));
+  if(F.channel)f.appendChild(chipGroup('Canal',[['all','Todos'],...D.u_chs.map((c,k)=>[k,c||'(vacío)'])],v=>fChannel===v,v=>fChannel=v));
+  if(F.exist)f.appendChild(chipGroup('Existencia',[['all','Todas'],...D.u_exists.map((c,k)=>[k,c||'(vacío)',EXIST_COLORS[Math.min(k,2)]])],v=>fExists.has(v),multi(fExists)));
+  if(F.grade)f.appendChild(chipGroup('Grade',[['all','Todos'],...D.u_grades.map((c,k)=>[k,c||'(vacío)'])],v=>fGrades.has(v),multi(fGrades)));
+  if(F.cat)f.appendChild(selectBox('Categoría',D.u_cats,v=>fCat=v));
+  if(F.city)f.appendChild(selectBox('Ciudad',D.u_cities,v=>fCity=v));
+  if(F.state)f.appendChild(selectBox('Departamento / Estado',D.u_states,v=>fState=v));
+  D.xcat.forEach((x,k)=>f.appendChild(chipGroup(x.label,[['all','Todos'],...x.uniq.map((u,j)=>[j,u||'(vacío)'])],v=>fX[k].has(v),
+    x.key==='region'?(v=>{multi(fX[k])(v);fitVisible()}):multi(fX[k]))));
+  D.xnum.forEach((x,k)=>{const b=document.createElement('div');
+    b.innerHTML=`<label class="f">${x.label}: <span id="xn${k}">todas</span></label><input type="range" min="0" max="${x.max}" step="10" value="${x.max}">`;
+    b.querySelector('input').oninput=e=>{fXmax[k]=+e.target.value;document.getElementById('xn'+k).textContent=fXmax[k]>=x.max?'todas':`≤ ${fmt(fXmax[k])} m`;buildLayers()};
+    f.appendChild(b)});
+  document.getElementById('f-search').oninput=e=>{fSearch=e.target.value.trim().toLowerCase();buildLayers()};
+}
+function renderSliders(){
+  const s=document.getElementById('sliders');let html='';
+  breaks.forEach((b,i)=>{const lo=i?breaks[i-1]+1:1;
+    html+=`<div class="brk"><span class="sw" style="opacity:${HEX_OPACITY[i]}"></span>
+      <input type="range" min="1" max="${MAX_VAL}" value="${b}" oninput="onSlider(${i},+this.value,this)"><span class="v" id="bv${i}">${lo}–${b}</span></div>`});
+  html+=`<div class="brk"><span class="sw" style="opacity:${HEX_OPACITY[5]}"></span><span>Más de ${breaks[4]}</span><span class="v">${MAX_VAL}</span></div>`;
+  s.innerHTML=html;
+}
+function onSlider(idx,val,input){
+  const lo=idx?breaks[idx-1]+1:1,hi=idx<4?breaks[idx+1]-1:Math.max(MAX_VAL,breaks[3]+1);
+  val=Math.max(lo,Math.min(hi,val));input.value=val;breaks[idx]=val;
+  renderSliders();repaintHex();
+}
+function resetBreaks(){breaks=[...DEFAULT_BREAKS];renderSliders();repaintHex()}
+function legendUI(){
+  const r=[];
+  if(F.exist)D.u_exists.forEach((u,k)=>r.push([EXIST_COLORS[Math.min(k,2)],`Existencia ${u||'(vacío)'}`,K.black]));
+  else if(F.match){r.push([K.yellow,'No match',K.black]);r.push([K.white,'Match',K.black])}
+  else r.push([K.yellow,'POI de prospección',K.black]);
+  if(F.excl)r.push(['transparent','Excluido',K.g2]);
+  if(F.clients)r.push([K.g3,'Cliente actual',K.black]);
+  document.getElementById('legend').innerHTML=r.map(([f,t,b])=>`<div class="row"><span class="dot" style="background:${f};border:2px solid ${b}"></span>${t}</div>`).join('')
+    +`<div class="row"><span class="dot" style="background:${K.yellow};opacity:.3;border-radius:0"></span>Hexágono: más amarillo = más POIs</div>`;
+}
+document.getElementById('st-total').textContent=fmt(N);
+layersUI();filtersUI();renderSliders();legendUI();buildClients();buildLayers();
+</script>
+</body>
+</html>

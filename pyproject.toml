@@ -1,0 +1,18 @@
+[project]
+name = "mapas-presentacion"
+version = "0.1.0"
+description = "Pipeline de prospección digital de Kin Analytics: QA, mapas, deck y entregables CSV"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.2",
+    "numpy>=2.0",
+    "h3>=4.0",
+    "rapidfuzz>=3.0",
+    "scikit-learn>=1.4",
+    "pillow>=10.0",
+    "openpyxl>=3.1",
+]
+
+[tool.uv]
+package = false
